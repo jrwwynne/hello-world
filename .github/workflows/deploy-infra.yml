@@ -1,0 +1,73 @@
+name: Deploy infrastructure
+
+# Thin wrapper that calls the reusable Terraform workflow for each environment.
+#
+# Trigger:
+#   - Push to main → plan dev + plan prod (safety: no auto-apply on push)
+#   - Manual dispatch → choose environment and whether to apply
+#
+# To apply, use the GitHub Actions "Run workflow" button and set apply=true.
+# The workflow requires the GitHub environment to have the infra-role-arn secret set.
+#
+# See docs/github-oidc-setup.md for how to configure the required secrets.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'infra/**'
+      - '.github/workflows/deploy-infra.yml'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment to deploy
+        required: true
+        type: choice
+        options:
+          - dev
+          - prod
+        default: dev
+      apply:
+        description: Run terraform apply (otherwise plan only)
+        required: false
+        type: boolean
+        default: false
+
+jobs:
+  # ── On push: plan both environments ────────────────────────────────────────
+
+  plan-dev:
+    if: github.event_name == 'push'
+    name: Plan dev
+    uses: ./.github/workflows/_reusable-terraform.yml
+    with:
+      environment: dev
+      tf-directory: infra/environments/dev
+      apply: false
+    secrets:
+      infra-role-arn: ${{ secrets.INFRA_ROLE_ARN_DEV }}
+
+  plan-prod:
+    if: github.event_name == 'push'
+    name: Plan prod
+    uses: ./.github/workflows/_reusable-terraform.yml
+    with:
+      environment: prod
+      tf-directory: infra/environments/prod
+      apply: false
+    secrets:
+      infra-role-arn: ${{ secrets.INFRA_ROLE_ARN_PROD }}
+
+  # ── On manual dispatch: plan or apply the selected environment ─────────────
+
+  manual:
+    if: github.event_name == 'workflow_dispatch'
+    name: ${{ inputs.apply && 'Apply' || 'Plan' }} ${{ inputs.environment }}
+    uses: ./.github/workflows/_reusable-terraform.yml
+    with:
+      environment: ${{ inputs.environment }}
+      tf-directory: infra/environments/${{ inputs.environment }}
+      apply: ${{ inputs.apply }}
+    secrets:
+      infra-role-arn: ${{ inputs.environment == 'prod' && secrets.INFRA_ROLE_ARN_PROD || secrets.INFRA_ROLE_ARN_DEV }}

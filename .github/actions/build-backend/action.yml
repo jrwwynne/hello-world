@@ -1,0 +1,39 @@
+name: Build and package Lambda
+description: >
+  Installs backend dependencies, compiles TypeScript via esbuild, and produces
+  a function.zip ready for Lambda deployment.
+
+inputs:
+  node-version:
+    description: Node.js version.
+    required: false
+    default: '20'
+  working-directory:
+    description: Path to the backend directory.
+    required: false
+    default: backend
+
+outputs:
+  zip-path:
+    description: Path to the produced function.zip.
+    value: ${{ inputs.working-directory }}/function.zip
+
+runs:
+  using: composite
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ inputs.node-version }}
+        cache: npm
+        cache-dependency-path: ${{ inputs.working-directory }}/package-lock.json
+
+    - name: Install dependencies
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: npm ci
+
+    - name: Build and package
+      shell: bash
+      working-directory: ${{ inputs.working-directory }}
+      run: npm run build:package

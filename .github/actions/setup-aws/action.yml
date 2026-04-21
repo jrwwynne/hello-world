@@ -1,0 +1,27 @@
+name: Setup AWS credentials via OIDC
+description: >
+  Configures AWS credentials using GitHub Actions OIDC federation.
+  No long-lived AWS keys are required.
+
+inputs:
+  role-arn:
+    description: ARN of the IAM role to assume.
+    required: true
+  aws-region:
+    description: AWS region.
+    required: false
+    default: ap-southeast-2
+  session-name:
+    description: IAM role session name (appears in CloudTrail logs).
+    required: false
+    default: GitHubActions
+
+runs:
+  using: composite
+  steps:
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v4
+      with:
+        role-to-assume: ${{ inputs.role-arn }}
+        aws-region: ${{ inputs.aws-region }}
+        role-session-name: ${{ inputs.session-name }}

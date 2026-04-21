@@ -1,0 +1,22 @@
+# Copy this file to terraform.tfvars and fill in the values.
+# terraform.tfvars is gitignored — do not commit real values.
+
+# ── Required ──────────────────────────────────────────────────────────────────
+
+project_name = "REPLACE_ME"
+github_org   = "REPLACE_ME"
+github_repo  = "REPLACE_ME"
+
+# Production callback URLs — must be real HTTPS URLs.
+# Get the CloudFront URL from the dev apply, or from the first prod apply.
+cognito_callback_urls = ["https://REPLACE_ME.cloudfront.net"]
+cognito_logout_urls   = ["https://REPLACE_ME.cloudfront.net"]
+
+# ── Optional overrides ────────────────────────────────────────────────────────
+
+# aws_region       = "ap-southeast-2"
+# bedrock_model_id = "anthropic.claude-3-haiku-20240307-v1:0"
+
+# The GitHub OIDC provider is created once per account.
+# If dev already created it, set this to false.
+# create_oidc_provider = false

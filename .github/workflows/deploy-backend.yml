@@ -1,0 +1,52 @@
+name: Deploy backend
+
+# Builds the Lambda package and deploys to the selected environment.
+#
+# Trigger:
+#   - Push to main when backend code changes → auto-deploy to dev
+#   - Manual dispatch → choose environment
+#
+# Required GitHub environment secrets:
+#   BACKEND_ROLE_ARN  — ARN of the backend deployer IAM role (per environment)
+#   LAMBDA_FUNCTION_NAME — name of the Lambda function (per environment)
+#
+# See docs/github-oidc-setup.md for setup instructions.
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - 'backend/**'
+      - '.github/workflows/deploy-backend.yml'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Environment to deploy
+        required: true
+        type: choice
+        options:
+          - dev
+          - prod
+        default: dev
+
+jobs:
+  deploy-dev:
+    if: github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.environment == 'dev')
+    name: Deploy backend to dev
+    uses: ./.github/workflows/_reusable-lambda.yml
+    with:
+      environment: dev
+      function-name: ${{ vars.LAMBDA_FUNCTION_NAME_DEV }}
+    secrets:
+      backend-role-arn: ${{ secrets.BACKEND_ROLE_ARN_DEV }}
+
+  deploy-prod:
+    if: github.event_name == 'workflow_dispatch' && inputs.environment == 'prod'
+    name: Deploy backend to prod
+    uses: ./.github/workflows/_reusable-lambda.yml
+    with:
+      environment: prod
+      function-name: ${{ vars.LAMBDA_FUNCTION_NAME_PROD }}
+    secrets:
+      backend-role-arn: ${{ secrets.BACKEND_ROLE_ARN_PROD }}

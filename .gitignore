@@ -1,0 +1,36 @@
+# Node
+node_modules/
+dist/
+.env
+.env.local
+*.js.map
+
+# Lambda build artifacts
+backend/dist/
+backend/function.zip
+
+# Terraform
+**/.terraform/
+**/*.tfstate
+**/*.tfstate.backup
+# Note: .terraform.lock.hcl SHOULD be committed per Terraform best practice.
+# It is excluded here only so the template repo itself has no lock file.
+# Uncomment the line below in a real project once you have run `terraform init`:
+# **/.terraform.lock.hcl
+**/terraform.tfvars
+*.tfplan
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# Vite / frontend build
+frontend/dist/
+
+# Test coverage
+coverage/
